@@ -263,10 +263,9 @@ defmodule MixUnused.Report.HtmlTemplate do
     .badge-hint { background: #3498db; }
     .badge-information { background: #95a5a6; }
     .badge-analyzer { background: #34495e; }
-    .badge-analyzer.private { background: #9b59b6; }
-    .badge-analyzer.recursive_only { background: #16a085; }
-    .badge-analyzer.hint { background: #3498db; }
-    .badge-analyzer.unused { background: #e67e22; }
+    .badge-analyzer.Private { background: #9b59b6; }
+    .badge-analyzer.RecursiveOnly { background: #16a085; }
+    .badge-analyzer.Unused { background: #e67e22; }
     .issue-message { color: #2c3e50; margin-top: 6px; font-size: 0.9em; font-weight: 500; }
     .issue-message .keyword { color: #e74c3c; font-weight: 600; }
     .issue-location { font-family: 'Courier New', monospace; font-size: 0.8em; color: #7f8c8d; margin-top: 4px; }
