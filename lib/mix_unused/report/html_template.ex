@@ -261,11 +261,12 @@ defmodule MixUnused.Report.HtmlTemplate do
     .top-file-item .issue-count { background: #e74c3c; color: white; padding: 3px 8px; border-radius: 12px; font-weight: 600; font-size: 0.8em; }
     .issue-item { border-left: 3px solid #3498db; padding: 12px; margin: 8px 0; background: #f8f9fa; border-radius: 4px; cursor: pointer; transition: all 0.2s; }
     .issue-item:hover { background: #e8eaf6; transform: translateX(2px); }
+    .issue-item:hover .issue-signature { color: #2563eb; text-decoration: underline; }
     .issue-item.severity-error { border-left-color: #e74c3c; }
     .issue-item.severity-warning { border-left-color: #f39c12; }
     .issue-item.severity-hint { border-left-color: #3498db; }
     .issue-header { display: flex; justify-content: space-between; margin-bottom: 6px; align-items: flex-start; }
-    .issue-signature { font-family: 'Courier New', monospace; font-weight: 600; color: #2c3e50; font-size: 0.9em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+    .issue-signature { font-family: 'Courier New', monospace; font-weight: 600; color: #3b82f6; font-size: 0.9em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; text-decoration: underline; cursor: pointer; }
     .issue-meta { display: flex; gap: 6px; font-size: 0.8em; flex-shrink: 0; }
     .badge { padding: 3px 7px; border-radius: 10px; color: white; font-weight: 600; white-space: nowrap; }
     .badge-error { background: #dc3545; }
