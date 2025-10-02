@@ -114,6 +114,7 @@ defmodule MixUnused.HeuristicsTest do
       # Stdlib protocols are recognized by name
       assert Heuristics.protocol_implementation?(Enumerable.List)
       assert Heuristics.protocol_implementation?(Inspect.Atom)
+
       # Note: MyProtocol.MyType will NOT be recognized unless it follows the pattern
       # with proper capitalization and isn't a test fixture name
     end
@@ -121,7 +122,8 @@ defmodule MixUnused.HeuristicsTest do
     test "rejects regular modules and test fixtures" do
       refute Heuristics.protocol_implementation?(MyApp.Service)
       refute Heuristics.protocol_implementation?(MyApp)
-      refute Heuristics.protocol_implementation?(Foo.Bar)  # Test fixture pattern
+      # Test fixture pattern
+      refute Heuristics.protocol_implementation?(Foo.Bar)
       # String.Chars.Integer has 4 parts, not handled by this heuristic
       refute Heuristics.protocol_implementation?(String.Chars.Integer)
     end
