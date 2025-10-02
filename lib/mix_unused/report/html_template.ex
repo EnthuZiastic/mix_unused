@@ -385,9 +385,38 @@ defmodule MixUnused.Report.HtmlTemplate do
       if (!fileData) return;
 
       const detailsPanel = document.getElementById('issueDetails');
-      let html = `<h2>📝 ${escapeHtml(filePath)} (${fileData.total_count} issues)</h2>`;
 
-      fileData.issues.forEach(issue => {
+      // Get current filter values
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      const severity = document.getElementById('severityFilter').value;
+      const analyzer = document.getElementById('analyzerFilter').value;
+
+      // Filter issues based on current filters
+      let filteredIssues = fileData.issues.filter(issue => {
+        let matches = true;
+
+        // Search filter
+        if (searchTerm) {
+          const searchableText = `${issue.signature} ${issue.message} ${issue.analyzer}`.toLowerCase();
+          matches = matches && searchableText.includes(searchTerm);
+        }
+
+        // Severity filter
+        if (severity) {
+          matches = matches && issue.severity === severity;
+        }
+
+        // Analyzer filter
+        if (analyzer) {
+          matches = matches && issue.analyzer === analyzer;
+        }
+
+        return matches;
+      });
+
+      let html = `<h2>📝 ${escapeHtml(filePath)} (${filteredIssues.length} issues)</h2>`;
+
+      filteredIssues.forEach(issue => {
         const highlightedMessage = highlightKeywords(escapeHtml(issue.message));
         html += `
           <div class="issue-item severity-${issue.severity}">
@@ -485,6 +514,15 @@ defmodule MixUnused.Report.HtmlTemplate do
       sortedFolders.forEach(folder => {
         folder.style.display = hasVisibleDescendants(folder) ? 'block' : 'none';
       });
+
+      // Refresh currently displayed issues if a file is selected
+      const selectedNode = document.querySelector('.tree-node-header.selected');
+      if (selectedNode) {
+        const filePath = selectedNode.getAttribute('data-file');
+        if (filePath) {
+          showFileIssues(filePath);
+        }
+      }
     }
 
     // Top files click
