@@ -88,6 +88,7 @@ defmodule Mix.Tasks.Compile.Unused do
   """
 
   alias Mix.Task.Compiler
+  alias MixUnused.DynamicCalls
   alias MixUnused.Exports
   alias MixUnused.Filter
   alias MixUnused.Tracer
@@ -131,6 +132,15 @@ defmodule Mix.Tasks.Compile.Unused do
     data =
       Tracer.get_data()
       |> update_manifest(manifest)
+
+    # Detect and warn about dynamic dispatch
+    dynamic_dispatchers = DynamicCalls.find_dynamic_dispatchers(data)
+
+    unless Enum.empty?(dynamic_dispatchers) do
+      dynamic_dispatchers
+      |> DynamicCalls.generate_warnings()
+      |> Enum.each(&Mix.shell().info/1)
+    end
 
     all_functions =
       app

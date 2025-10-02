@@ -62,6 +62,27 @@ So this mean that, for example, if you have custom `child_spec/1` definition
 then `mix unused` can return such function as unused even when you are using
 that indirectly in your supervisor.
 
+**Dynamic Dispatch Detection**: The tool now automatically detects modules that use `apply/2` or `apply/3` and generates warnings during compilation to help you identify potential false positives:
+
+```elixir
+⚠️  Module MyApp.Worker uses dynamic dispatch (apply/3 calls).
+    Functions called via apply may be incorrectly marked as unused.
+    Consider adding them to the ignore list if false positives occur.
+```
+
+### Smart Framework Detection
+
+The tool automatically recognizes common Elixir/Phoenix framework patterns and excludes them from unused analysis:
+
+- **Phoenix**: Controller actions, LiveView callbacks, Channels, Views
+- **OTP**: GenServer, Supervisor, Application callbacks
+- **Plug**: Middleware callbacks (`init/1`, `call/2`)
+- **Ecto**: Schema and changeset functions
+- **Protocols**: Standard library protocol implementations
+- **Test Helpers**: Factory, Fixture, and test support modules
+
+This means you no longer need to manually annotate most framework callbacks with `@doc export: true`.
+
 ### Configuration
 
 You can define used functions by adding `mfa` in `unused: [ignored: [⋯]]`
