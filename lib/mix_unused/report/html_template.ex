@@ -23,51 +23,59 @@ defmodule MixUnused.Report.HtmlTemplate do
     <body>
       <div class="container">
         <header>
-          <h1>🔍 MixUnused Analysis Report</h1>
-          <p class="timestamp">Generated: #{report_data.timestamp}</p>
+          <div class="header-row-1">
+            <div class="header-left">
+              <h1>🔍 MixUnused</h1>
+              <p class="timestamp">#{report_data.timestamp}</p>
+            </div>
+            <div class="header-stats">
+              #{render_inline_stats(report_data.stats)}
+            </div>
+            <button class="export-button" id="exportJson" title="Export data as JSON">
+              📊 Export JSON
+            </button>
+          </div>
+          <div class="header-row-2">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔎 Search files, functions, messages..." />
+            <div class="filters-inline">
+              <select id="severityFilter" class="filter-select">
+                <option value="">All Severities</option>
+                <option value="error">Error</option>
+                <option value="warning">Warning</option>
+                <option value="hint">Hint</option>
+                <option value="information">Information</option>
+              </select>
+              <select id="analyzerFilter" class="filter-select">
+                <option value="">All Analyzers</option>
+                #{render_analyzer_options(report_data.stats)}
+              </select>
+            </div>
+          </div>
         </header>
 
-        <div class="stats-grid">
-          #{render_stats(report_data.stats)}
-        </div>
-
-        <div class="controls">
-          <div class="search-box">
-            <input type="text" id="searchInput" placeholder="🔎 Search files, functions, messages..." />
-          </div>
-          <div class="filters">
-            <label>Severity:</label>
-            <select id="severityFilter">
-              <option value="">All Severities</option>
-              <option value="error">Error</option>
-              <option value="warning">Warning</option>
-              <option value="hint">Hint</option>
-              <option value="information">Information</option>
-            </select>
-            <label>Analyzer:</label>
-            <select id="analyzerFilter">
-              <option value="">All Analyzers</option>
-              #{render_analyzer_options(report_data.stats)}
-            </select>
-          </div>
+        <div class="tabs">
+          <button class="tab-button active" data-tab="tree">File Tree</button>
+          <button class="tab-button" data-tab="top-files">Top Files</button>
         </div>
 
         <div class="content-layout">
           <div class="tree-panel">
-            <h2>📁 File Tree</h2>
-            <div id="fileTree">
-              #{render_tree(report_data.tree)}
+            <div class="tab-content active" id="tab-tree">
+              <div id="fileTree">
+                #{render_tree(report_data.tree)}
+              </div>
+            </div>
+            <div class="tab-content" id="tab-top-files">
+              <div id="topFiles">
+                #{render_top_files(report_data.stats.top_files)}
+              </div>
             </div>
           </div>
 
           <div class="details-panel">
-            <div id="topFiles">
-              <h2>📊 Top Files by Issue Count</h2>
-              #{render_top_files(report_data.stats.top_files)}
-            </div>
             <div id="issueDetails">
               <h2>📝 Issue Details</h2>
-              <p class="placeholder">Click on a file in the tree to view its issues</p>
+              <p class="placeholder">Click on a file to view its issues</p>
             </div>
           </div>
         </div>
@@ -84,32 +92,30 @@ defmodule MixUnused.Report.HtmlTemplate do
     """
   end
 
-  defp render_stats(stats) do
+  defp render_inline_stats(stats) do
     """
-    <div class="stat-card">
-      <div class="stat-value">#{stats.total_issues}</div>
-      <div class="stat-label">Total Issues</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-value">#{stats.total_files}</div>
-      <div class="stat-label">Files</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-value">#{stats.avg_issues_per_file}</div>
-      <div class="stat-label">Avg/File</div>
-    </div>
-    <div class="stat-card severity-error">
-      <div class="stat-value">#{Map.get(stats.by_severity, :error, 0)}</div>
-      <div class="stat-label">Errors</div>
-    </div>
-    <div class="stat-card severity-warning">
-      <div class="stat-value">#{Map.get(stats.by_severity, :warning, 0)}</div>
-      <div class="stat-label">Warnings</div>
-    </div>
-    <div class="stat-card severity-hint">
-      <div class="stat-value">#{Map.get(stats.by_severity, :hint, 0)}</div>
-      <div class="stat-label">Hints</div>
-    </div>
+    <span class="stat-inline">
+      <span class="stat-value">#{stats.total_issues}</span>
+      <span class="stat-label">issues</span>
+    </span>
+    <span class="stat-divider">•</span>
+    <span class="stat-inline">
+      <span class="stat-value">#{stats.total_files}</span>
+      <span class="stat-label">files</span>
+    </span>
+    <span class="stat-divider">•</span>
+    <span class="stat-inline severity-error">
+      <span class="stat-value">#{Map.get(stats.by_severity, :error, 0)}</span>
+      <span class="stat-label">errors</span>
+    </span>
+    <span class="stat-inline severity-warning">
+      <span class="stat-value">#{Map.get(stats.by_severity, :warning, 0)}</span>
+      <span class="stat-label">warn</span>
+    </span>
+    <span class="stat-inline severity-hint">
+      <span class="stat-value">#{Map.get(stats.by_severity, :hint, 0)}</span>
+      <span class="stat-label">hints</span>
+    </span>
     """
   end
 
@@ -158,7 +164,7 @@ defmodule MixUnused.Report.HtmlTemplate do
 
   defp render_tree_node(%{type: :folder, children: children} = node, level) do
     """
-    <div class="tree-node folder-node" style="margin-left: #{level * 20}px">
+    <div class="tree-node folder-node" style="margin-left: #{level * 16}px">
       <div class="tree-node-header" data-expanded="false">
         <span class="tree-icon">▶</span>
         <span class="tree-name">📁 #{escape_html(node.name)}</span>
@@ -173,7 +179,7 @@ defmodule MixUnused.Report.HtmlTemplate do
 
   defp render_tree_node(%{type: :file} = node, level) do
     """
-    <div class="tree-node file-node" style="margin-left: #{level * 20}px" data-file="#{escape_html(node.path)}">
+    <div class="tree-node file-node" style="margin-left: #{level * 16}px" data-file="#{escape_html(node.path)}">
       <div class="tree-node-header" data-file="#{escape_html(node.path)}">
         <span class="tree-icon">📄</span>
         <span class="tree-name">#{escape_html(node.name)}</span>
@@ -195,61 +201,76 @@ defmodule MixUnused.Report.HtmlTemplate do
   defp css do
     """
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background: #f5f7fa; color: #2c3e50; }
-    .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
-    header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    header h1 { font-size: 2em; margin-bottom: 10px; }
-    .timestamp { opacity: 0.9; font-size: 0.9em; }
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; }
-    .stat-card { background: white; padding: 20px; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.2s; }
-    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
-    .stat-value { font-size: 2em; font-weight: bold; color: #667eea; }
-    .stat-label { font-size: 0.9em; color: #7f8c8d; margin-top: 5px; }
-    .severity-error .stat-value { color: #e74c3c; }
-    .severity-warning .stat-value { color: #f39c12; }
-    .severity-hint .stat-value { color: #3498db; }
-    .controls { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .search-box { margin-bottom: 15px; }
-    .search-box input { width: 100%; padding: 12px; border: 2px solid #e0e6ed; border-radius: 6px; font-size: 1em; }
-    .search-box input:focus { outline: none; border-color: #667eea; }
-    .filters { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
-    .filters label { font-weight: 600; color: #2c3e50; }
-    .filters select { padding: 8px 12px; border: 2px solid #e0e6ed; border-radius: 6px; font-size: 0.9em; cursor: pointer; }
-    .filters select:focus { outline: none; border-color: #667eea; }
-    .content-layout { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
-    .tree-panel, .details-panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .tree-panel h2, .details-panel h2 { margin-bottom: 15px; color: #2c3e50; font-size: 1.3em; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background: #f5f7fa; color: #2c3e50; font-size: 14px; }
+    .container { max-width: 1400px; margin: 0 auto; padding: 15px; }
+    header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 20px; border-radius: 6px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .header-row-1 { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .header-row-2 { display: flex; gap: 12px; align-items: center; }
+    .header-left { display: flex; align-items: center; gap: 15px; }
+    header h1 { font-size: 1.3em; margin: 0; }
+    .timestamp { opacity: 0.9; font-size: 0.85em; }
+    .header-stats { display: flex; align-items: center; gap: 12px; font-size: 0.9em; }
+    .stat-inline { display: inline-flex; align-items: baseline; gap: 4px; }
+    .stat-inline .stat-value { font-weight: bold; font-size: 1.1em; }
+    .stat-inline .stat-label { opacity: 0.85; font-size: 0.85em; }
+    .stat-inline.severity-error .stat-value { color: #ffcccc; }
+    .stat-inline.severity-warning .stat-value { color: #ffe0b3; }
+    .stat-inline.severity-hint .stat-value { color: #cce5ff; }
+    .stat-divider { opacity: 0.5; margin: 0 4px; }
+    .export-button { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 6px 12px; border-radius: 4px; font-size: 0.85em; cursor: pointer; transition: all 0.2s; font-weight: 600; }
+    .export-button:hover { background: rgba(255,255,255,0.3); transform: translateY(-1px); }
+    .search-input { width: 400px; padding: 8px 12px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.15); color: white; border-radius: 4px; font-size: 0.9em; }
+    .search-input::placeholder { color: rgba(255,255,255,0.7); }
+    .search-input:focus { outline: none; background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.5); }
+    .filters-inline { display: flex; gap: 8px; flex: 1; }
+    .filter-select { padding: 7px 10px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.15); color: white; border-radius: 4px; font-size: 0.85em; cursor: pointer; }
+    .filter-select:focus { outline: none; background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.5); }
+    .filter-select option { color: #2c3e50; background: white; }
+    .tabs { display: flex; gap: 5px; margin-bottom: 15px; background: white; padding: 8px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .tab-button { padding: 8px 16px; border: none; background: transparent; color: #7f8c8d; font-size: 0.9em; font-weight: 600; cursor: pointer; border-radius: 4px; transition: all 0.2s; }
+    .tab-button:hover { background: #f5f7fa; }
+    .tab-button.active { background: #667eea; color: white; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .content-layout { display: grid; grid-template-columns: 1fr 2fr; gap: 15px; }
+    .tree-panel, .details-panel { background: white; padding: 15px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .tree-panel h2, .details-panel h2 { margin-bottom: 12px; color: #2c3e50; font-size: 1.1em; }
     #fileTree { max-height: 600px; overflow-y: auto; }
     .tree-node { margin: 2px 0; }
-    .tree-node-header { padding: 8px 10px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 8px; transition: background 0.2s; }
+    .tree-node-header { padding: 6px 8px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 6px; transition: background 0.2s; }
     .tree-node-header:hover { background: #f5f7fa; }
     .tree-node-header.selected { background: #667eea; color: white; }
     .tree-icon { font-size: 0.8em; width: 15px; display: inline-block; }
-    .tree-name { flex: 1; }
+    .tree-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .tree-count { background: #667eea; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.85em; font-weight: 600; }
     .tree-node-header.selected .tree-count { background: white; color: #667eea; }
     .tree-children { margin-left: 0; }
-    .top-file-item { padding: 12px; border-left: 4px solid #667eea; margin: 10px 0; background: #f8f9fa; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all 0.2s; }
-    .top-file-item:hover { background: #e8eaf6; transform: translateX(5px); }
-    .top-file-item .rank { background: #667eea; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9em; }
-    .top-file-item .file-name { flex: 1; font-family: 'Courier New', monospace; font-size: 0.9em; }
-    .top-file-item .issue-count { background: #e74c3c; color: white; padding: 4px 10px; border-radius: 12px; font-weight: 600; font-size: 0.85em; }
-    .issue-item { border-left: 4px solid #3498db; padding: 15px; margin: 10px 0; background: #f8f9fa; border-radius: 4px; }
+    .top-file-item { padding: 10px; border-left: 3px solid #667eea; margin: 8px 0; background: #f8f9fa; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+    .top-file-item:hover { background: #e8eaf6; transform: translateX(3px); }
+    .top-file-item .rank { background: #667eea; color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.85em; }
+    .top-file-item .file-name { flex: 1; font-family: 'Courier New', monospace; font-size: 0.85em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .top-file-item .issue-count { background: #e74c3c; color: white; padding: 3px 8px; border-radius: 12px; font-weight: 600; font-size: 0.8em; }
+    .issue-item { border-left: 3px solid #3498db; padding: 12px; margin: 8px 0; background: #f8f9fa; border-radius: 4px; }
     .issue-item.severity-error { border-left-color: #e74c3c; }
     .issue-item.severity-warning { border-left-color: #f39c12; }
     .issue-item.severity-hint { border-left-color: #3498db; }
-    .issue-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
-    .issue-signature { font-family: 'Courier New', monospace; font-weight: 600; color: #2c3e50; }
-    .issue-meta { display: flex; gap: 10px; font-size: 0.85em; }
-    .badge { padding: 3px 8px; border-radius: 12px; color: white; font-weight: 600; }
+    .issue-header { display: flex; justify-content: space-between; margin-bottom: 6px; align-items: flex-start; }
+    .issue-signature { font-family: 'Courier New', monospace; font-weight: 600; color: #2c3e50; font-size: 0.9em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+    .issue-meta { display: flex; gap: 6px; font-size: 0.8em; flex-shrink: 0; }
+    .badge { padding: 3px 7px; border-radius: 10px; color: white; font-weight: 600; white-space: nowrap; }
     .badge-error { background: #e74c3c; }
     .badge-warning { background: #f39c12; }
     .badge-hint { background: #3498db; }
     .badge-information { background: #95a5a6; }
-    .badge-analyzer { background: #9b59b6; }
-    .issue-message { color: #555; margin-top: 8px; }
-    .issue-location { font-family: 'Courier New', monospace; font-size: 0.85em; color: #7f8c8d; margin-top: 5px; }
-    .placeholder { color: #95a5a6; text-align: center; padding: 40px; font-style: italic; }
+    .badge-analyzer { background: #34495e; }
+    .badge-analyzer.private { background: #9b59b6; }
+    .badge-analyzer.recursive_only { background: #16a085; }
+    .badge-analyzer.hint { background: #3498db; }
+    .badge-analyzer.unused { background: #e67e22; }
+    .issue-message { color: #2c3e50; margin-top: 6px; font-size: 0.9em; font-weight: 500; }
+    .issue-message .keyword { color: #e74c3c; font-weight: 600; }
+    .issue-location { font-family: 'Courier New', monospace; font-size: 0.8em; color: #7f8c8d; margin-top: 4px; }
+    .placeholder { color: #95a5a6; text-align: center; padding: 30px; font-style: italic; }
     @media (max-width: 768px) { .content-layout { grid-template-columns: 1fr; } .stats-grid { grid-template-columns: repeat(2, 1fr); } }
     @media print { .controls, .tree-panel { display: none; } .content-layout { grid-template-columns: 1fr; } }
     """
@@ -259,10 +280,49 @@ defmodule MixUnused.Report.HtmlTemplate do
     """
     // Initialize app
     document.addEventListener('DOMContentLoaded', function() {
+      setupTabs();
       setupTreeNavigation();
       setupFilters();
       setupTopFileClicks();
+      setupExport();
     });
+
+    // Export functionality
+    function setupExport() {
+      const exportButton = document.getElementById('exportJson');
+      exportButton.addEventListener('click', function() {
+        const dataStr = JSON.stringify(reportData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'mixunused-report-' + reportData.timestamp.replace(/[:\\s]/g, '-') + '.json';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      });
+    }
+
+    // Tab navigation
+    function setupTabs() {
+      const tabButtons = document.querySelectorAll('.tab-button');
+      tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          const tabName = this.getAttribute('data-tab');
+
+          // Update button states
+          tabButtons.forEach(btn => btn.classList.remove('active'));
+          this.classList.add('active');
+
+          // Update content visibility
+          document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+          });
+          document.getElementById('tab-' + tabName).classList.add('active');
+        });
+      });
+    }
 
     // Tree navigation
     function setupTreeNavigation() {
@@ -310,6 +370,16 @@ defmodule MixUnused.Report.HtmlTemplate do
       header.classList.add('selected');
     }
 
+    function highlightKeywords(text) {
+      const keywords = ['unused', 'is not used', 'should be private', 'not used outside'];
+      let result = text;
+      keywords.forEach(keyword => {
+        const regex = new RegExp(`(${keyword})`, 'gi');
+        result = result.replace(regex, '<span class="keyword">$1</span>');
+      });
+      return result;
+    }
+
     function showFileIssues(filePath) {
       const fileData = reportData.files.find(f => f.path === filePath);
       if (!fileData) return;
@@ -318,16 +388,17 @@ defmodule MixUnused.Report.HtmlTemplate do
       let html = `<h2>📝 ${escapeHtml(filePath)} (${fileData.total_count} issues)</h2>`;
 
       fileData.issues.forEach(issue => {
+        const highlightedMessage = highlightKeywords(escapeHtml(issue.message));
         html += `
           <div class="issue-item severity-${issue.severity}">
             <div class="issue-header">
               <div class="issue-signature">${escapeHtml(issue.signature)}</div>
               <div class="issue-meta">
                 <span class="badge badge-${issue.severity}">${issue.severity}</span>
-                <span class="badge badge-analyzer">${escapeHtml(issue.analyzer)}</span>
+                <span class="badge badge-analyzer ${escapeHtml(issue.analyzer)}">${escapeHtml(issue.analyzer)}</span>
               </div>
             </div>
-            <div class="issue-message">${escapeHtml(issue.message)}</div>
+            <div class="issue-message">${highlightedMessage}</div>
             <div class="issue-location">Line ${issue.line}</div>
           </div>
         `;
@@ -353,6 +424,8 @@ defmodule MixUnused.Report.HtmlTemplate do
       const analyzer = document.getElementById('analyzerFilter').value;
 
       const fileNodes = document.querySelectorAll('.file-node');
+
+      // First pass: filter files
       fileNodes.forEach(node => {
         const filePath = node.getAttribute('data-file');
         const fileData = reportData.files.find(f => f.path === filePath);
@@ -381,6 +454,36 @@ defmodule MixUnused.Report.HtmlTemplate do
         }
 
         node.style.display = matches ? 'block' : 'none';
+      });
+
+      // Second pass: hide folders with no visible descendants (bottom-up)
+      function hasVisibleDescendants(folderNode) {
+        const childrenContainer = folderNode.querySelector('.tree-children');
+        if (!childrenContainer) return false;
+
+        // Check for visible files
+        const visibleFiles = Array.from(childrenContainer.querySelectorAll(':scope > .file-node')).some(
+          file => file.style.display !== 'none'
+        );
+        if (visibleFiles) return true;
+
+        // Check nested folders recursively
+        const childFolders = Array.from(childrenContainer.querySelectorAll(':scope > .folder-node'));
+        return childFolders.some(childFolder => {
+          const hasVisible = hasVisibleDescendants(childFolder);
+          childFolder.style.display = hasVisible ? 'block' : 'none';
+          return hasVisible;
+        });
+      }
+
+      const folderNodes = document.querySelectorAll('.folder-node');
+      // Process from deepest to shallowest
+      const sortedFolders = Array.from(folderNodes).sort((a, b) => {
+        return b.querySelectorAll('.folder-node').length - a.querySelectorAll('.folder-node').length;
+      });
+
+      sortedFolders.forEach(folder => {
+        folder.style.display = hasVisibleDescendants(folder) ? 'block' : 'none';
       });
     }
 
