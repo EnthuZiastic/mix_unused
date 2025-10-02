@@ -21,6 +21,7 @@ defmodule MixUnused.MixProject do
       ],
       deps: [
         {:libgraph, ">= 0.0.0"},
+        {:jason, "~> 1.0"},
         {:credo, "~> 1.7", only: :dev, runtime: false},
         {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
         {:dialyxir, "~> 1.0", only: :dev, runtime: false},

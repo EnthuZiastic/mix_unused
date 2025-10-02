@@ -91,6 +91,7 @@ defmodule Mix.Tasks.Compile.Unused do
   alias MixUnused.DynamicCalls
   alias MixUnused.Exports
   alias MixUnused.Filter
+  alias MixUnused.Report.Generator, as: ReportGenerator
   alias MixUnused.Tracer
 
   alias Compiler.Diagnostic
@@ -151,11 +152,20 @@ defmodule Mix.Tasks.Compile.Unused do
       config.severity == :error or
         (config.severity == :warning and config.warnings_as_errors)
 
-    config.checks
-    |> MixUnused.Analyze.analyze(data, all_functions, config)
-    |> Enum.sort_by(&{&1.file, &1.position, &1.details.mfa})
-    |> tap_all(&print_diagnostic/1)
-    |> case do
+    messages =
+      config.checks
+      |> MixUnused.Analyze.analyze(data, all_functions, config)
+      |> Enum.sort_by(&{&1.file, &1.position, &1.details.mfa})
+
+    # Generate HTML report if requested
+    if config.html_report and not Enum.empty?(messages) do
+      generate_html_report(messages, config)
+    end
+
+    # Print diagnostics
+    Enum.each(messages, &print_diagnostic/1)
+
+    case messages do
       [] ->
         {status, diagnostics}
 
@@ -164,6 +174,44 @@ defmodule Mix.Tasks.Compile.Unused do
 
       messages ->
         {status, messages ++ diagnostics}
+    end
+  end
+
+  defp generate_html_report(messages, config) do
+    case ReportGenerator.generate(messages, config.html_output) do
+      :ok ->
+        Mix.shell().info([
+          :green,
+          "\n✓ HTML report generated: ",
+          :reset,
+          config.html_output,
+          "\n"
+        ])
+
+        if config.html_open do
+          case ReportGenerator.open_in_browser(config.html_output) do
+            :ok ->
+              Mix.shell().info([
+                :green,
+                "✓ Opened report in browser\n",
+                :reset
+              ])
+
+            {:error, reason} ->
+              Mix.shell().error([
+                :yellow,
+                "⚠ Could not open browser: #{reason}\n",
+                :reset
+              ])
+          end
+        end
+
+      {:error, reason} ->
+        Mix.shell().error([
+          :red,
+          "✗ Failed to generate HTML report: #{reason}\n",
+          :reset
+        ])
     end
   end
 
@@ -207,13 +255,6 @@ defmodule Mix.Tasks.Compile.Unused do
       Integer.to_string(diag.position),
       "\n"
     ])
-  end
-
-  # Elixir < 1.12 do not have tap, so we provide custom implementation
-  defp tap_all(list, fun) do
-    Enum.each(list, fun)
-
-    list
   end
 
   defp level(level), do: [:bright, color(level), "#{level}: ", :reset]

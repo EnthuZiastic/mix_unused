@@ -102,6 +102,63 @@ def project do
 end
 ```
 
+## HTML Report
+
+Mix Unused can generate comprehensive, interactive HTML reports for analyzing unused functions. The report includes:
+
+- **Interactive File Tree**: Browse your codebase hierarchy with issue counts per folder/file
+- **Statistics Dashboard**: Total issues, breakdown by severity and analyzer type
+- **Search & Filter**: Real-time search across files, functions, and messages with filters by severity and analyzer
+- **Top Files View**: Sorted list of files with the most issues
+- **Detailed Issue Listings**: Click any file to view all its unused function details
+
+### Usage
+
+Generate an HTML report by adding the `--html-report` flag:
+
+```bash
+mix compile --html-report
+```
+
+This will create `unused_report.html` in your project root. To customize the output path:
+
+```bash
+mix compile --html-report --html-output reports/unused.html
+```
+
+To automatically open the report in your browser after generation:
+
+```bash
+mix compile --html-report --html-open
+```
+
+You can also configure HTML report generation in your project configuration:
+
+```elixir
+def project do
+  [
+    # ⋯
+    unused: [
+      html_report: true,                    # Enable HTML report generation
+      html_output: "reports/unused.html",   # Custom output path
+      html_open: false                       # Auto-open in browser
+    ],
+    # ⋯
+  ]
+end
+```
+
+### Report Features
+
+The generated HTML report is completely standalone (no external dependencies) and includes:
+
+1. **Collapsible Folder Tree**: Navigate your project structure with expandable/collapsible folders
+2. **Issue Count Badges**: See at a glance how many issues exist in each folder/file
+3. **Severity Indicators**: Color-coded badges for error, warning, hint, and information levels
+4. **Analyzer Grouping**: Filter and group by analyzer type (Private, Unused, RecursiveOnly)
+5. **Responsive Design**: Works on desktop and mobile devices
+6. **Print-Friendly**: Clean layout for printing or PDF export
+
 ## Copyright and License
 
 Copyright © 2021 by Łukasz Niemier
