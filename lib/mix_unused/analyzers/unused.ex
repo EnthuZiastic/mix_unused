@@ -3,6 +3,8 @@ defmodule MixUnused.Analyzers.Unused do
 
   @behaviour MixUnused.Analyze
 
+  alias MixUnused.Heuristics
+
   @impl true
   def message, do: "is unused"
 
@@ -21,7 +23,7 @@ defmodule MixUnused.Analyzers.Unused do
       end
 
     for {mfa, meta} = call <- possibly_uncalled,
-        not Map.get(meta.doc_meta, :export, false),
+        not Heuristics.likely_export?(mfa, meta),
         reaching = Graph.reaching_neighbors(graph, [mfa]),
         Enum.all?(reaching, fn caller -> caller in uncalled_funcs end),
         into: %{},
