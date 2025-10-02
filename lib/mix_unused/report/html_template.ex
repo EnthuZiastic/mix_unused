@@ -258,10 +258,10 @@ defmodule MixUnused.Report.HtmlTemplate do
     .issue-signature { font-family: 'Courier New', monospace; font-weight: 600; color: #2c3e50; font-size: 0.9em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
     .issue-meta { display: flex; gap: 6px; font-size: 0.8em; flex-shrink: 0; }
     .badge { padding: 3px 7px; border-radius: 10px; color: white; font-weight: 600; white-space: nowrap; }
-    .badge-error { background: #e74c3c; }
-    .badge-warning { background: #f39c12; }
-    .badge-hint { background: #3498db; }
-    .badge-information { background: #95a5a6; }
+    .badge-error { background: #dc3545; }
+    .badge-warning { background: #ffc107; color: #212529; }
+    .badge-hint { background: #17a2b8; }
+    .badge-information { background: #6c757d; }
     .badge-analyzer { background: #34495e; }
     .badge-analyzer.Private { background: #9b59b6; }
     .badge-analyzer.RecursiveOnly { background: #16a085; }
