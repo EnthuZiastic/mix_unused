@@ -87,15 +87,16 @@ defmodule Mix.Tasks.Compile.Unused do
     any report, then fail compilation with exit code `1`.
   """
 
-  alias Mix.Task.Compiler.Diagnostic
+  alias Mix.Task.Compiler
+  alias MixUnused.Exports
+  alias MixUnused.Filter
+  alias MixUnused.Tracer
+
+  alias Compiler.Diagnostic
 
   @recursive true
 
   @manifest "unused.manifest"
-
-  alias MixUnused.Tracer
-  alias MixUnused.Filter
-  alias MixUnused.Exports
 
   @impl true
   def run(argv) do
@@ -107,7 +108,7 @@ defmodule Mix.Tasks.Compile.Unused do
 
     [manifest] = manifests()
 
-    Mix.Task.Compiler.after_compiler(
+    Compiler.after_compiler(
       :app,
       &after_compiler(&1, mix_config[:app], tracers, config, manifest)
     )

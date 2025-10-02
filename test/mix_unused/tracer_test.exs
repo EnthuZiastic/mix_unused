@@ -59,7 +59,7 @@ defmodule MixUnused.TracerTest do
                foo()
              end
 
-             def foo(), do: :ok
+             def foo, do: :ok
            end)
     test "contains information about called local public function", ctx do
       name = ctx.module_name
@@ -71,7 +71,7 @@ defmodule MixUnused.TracerTest do
                &__MODULE__.foo/0
              end
 
-             def foo(), do: :ok
+             def foo, do: :ok
            end)
     test "contains information about function returned by remote reference",
          ctx do
@@ -84,7 +84,7 @@ defmodule MixUnused.TracerTest do
                &foo/0
              end
 
-             def foo(), do: :ok
+             def foo, do: :ok
            end)
     test "contains information about function returned by local reference",
          ctx do
@@ -104,7 +104,7 @@ defmodule MixUnused.TracerTest do
     end
 
     @code (quote do
-             defmacro foo(), do: :ok
+             defmacro foo, do: :ok
 
              def test do
                foo()

@@ -3,7 +3,7 @@ defmodule Mix.Tasks.Compile.UnusedTest do
 
   import ExUnit.CaptureIO
 
-  alias MixUnused.Analyzers.{Private, Unused, RecursiveOnly}
+  alias MixUnused.Analyzers.{Private, RecursiveOnly, Unused}
 
   describe "umbrella" do
     test "simple file" do
