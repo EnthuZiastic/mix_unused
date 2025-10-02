@@ -16,7 +16,7 @@ defmodule MixUnused.DynamicCalls do
   def find_dynamic_dispatchers(tracer_data) do
     for {module, calls} <- tracer_data,
         {{called_mod, called_func, called_arity}, _meta} <- calls,
-        is_apply_call?(called_mod, called_func, called_arity),
+        apply_call?(called_mod, called_func, called_arity),
         reduce: %{} do
       acc ->
         Map.update(acc, module, [{called_func, called_arity}], fn existing ->
@@ -28,8 +28,8 @@ defmodule MixUnused.DynamicCalls do
   @doc """
   Checks if a call is to apply/2, apply/3, or Kernel.apply.
   """
-  @spec is_apply_call?(module(), atom(), arity()) :: boolean()
-  def is_apply_call?(module, function, arity) do
+  @spec apply_call?(module(), atom(), arity()) :: boolean()
+  def apply_call?(module, function, arity) do
     (module == Kernel and function == :apply and arity in [2, 3]) or
       (module == :erlang and function == :apply and arity in [2, 3]) or
       (function == :apply and arity in [2, 3])

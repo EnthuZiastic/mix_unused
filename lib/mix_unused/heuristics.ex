@@ -15,18 +15,18 @@ defmodule MixUnused.Heuristics do
   @spec likely_export?(mfa(), Meta.t()) :: boolean()
   def likely_export?({module, function, arity}, meta) do
     # Module suggests internal/private - check this first
-    if is_internal_module?(module) do
+    if internal_module?(module) do
       false
     else
       # Check if any of our heuristics match
       Map.get(meta.doc_meta, :export, false) or
         has_public_documentation?(meta) or
-        is_otp_callback?(function, arity) or
-        is_phoenix_callback?(module, function, arity) or
-        is_plug_callback?(function, arity) or
-        is_ecto_callback?(function, arity) or
-        is_protocol_implementation?(module) or
-        is_test_helper?(module)
+        otp_callback?(function, arity) or
+        phoenix_callback?(module, function, arity) or
+        plug_callback?(function, arity) or
+        ecto_callback?(function, arity) or
+        protocol_implementation?(module) or
+        test_helper?(module)
     end
   end
 
@@ -46,7 +46,7 @@ defmodule MixUnused.Heuristics do
   @doc """
   Detects common OTP and GenServer callback functions.
   """
-  def is_otp_callback?(function, arity) do
+  def otp_callback?(function, arity) do
     {function, arity} in [
       # GenServer
       {:init, 1},
@@ -82,7 +82,7 @@ defmodule MixUnused.Heuristics do
   @doc """
   Detects Phoenix framework callback patterns.
   """
-  def is_phoenix_callback?(module, function, arity) do
+  def phoenix_callback?(module, function, arity) do
     module_name = Atom.to_string(module)
 
     cond do
@@ -131,7 +131,7 @@ defmodule MixUnused.Heuristics do
   @doc """
   Detects Plug callback functions.
   """
-  def is_plug_callback?(function, arity) do
+  def plug_callback?(function, arity) do
     {function, arity} in [
       {:init, 1},
       {:call, 2}
@@ -141,7 +141,7 @@ defmodule MixUnused.Heuristics do
   @doc """
   Detects Ecto schema and changeset callbacks.
   """
-  def is_ecto_callback?(function, arity) do
+  def ecto_callback?(function, arity) do
     {function, arity} in [
       {:changeset, 2},
       {:changeset, 3},
@@ -172,38 +172,43 @@ defmodule MixUnused.Heuristics do
   exactly 2 namespace parts (Elixir.Protocol.Type = 3 total parts).
   May miss some nested protocol implementations to avoid false positives.
   """
-  def is_protocol_implementation?(module) do
-    # Convert to string and split
+  def protocol_implementation?(module) do
     module_str = Atom.to_string(module)
     module_parts = String.split(module_str, ".")
 
     # Protocol.Type pattern: exactly 3 parts (Elixir.Protocol.Type)
-    # AND both parts after "Elixir" start with uppercase (proper module names)
-    # AND it contains a dot in the user-visible name (not just "Elixir.Foo")
-    case module_parts do
-      ["Elixir", _first, _second] ->
-        # Make sure it looks like a protocol implementation (has common protocol names)
-        # or matches known patterns
-        String.contains?(module_str, "Enumerable.") or
-          String.contains?(module_str, "String.Chars.") or
-          String.contains?(module_str, "Inspect.") or
-          String.contains?(module_str, "Collectable.") or
-          # Generic MyProtocol.MyType pattern - require both parts to be capitalized
-          # and second part to not be a common test fixture name
-          (String.match?(module_str, ~r/Elixir\.[A-Z][a-z]+\.[A-Z]/) and
-             not String.contains?(module_str, ".Bar") and
-             not String.contains?(module_str, ".Foo") and
-             not String.contains?(module_str, ".Baz"))
+    three_part_module?(module_parts) and
+      (known_protocol?(module_str) or generic_protocol_pattern?(module_str))
+  end
 
-      _ ->
-        false
-    end
+  defp three_part_module?(module_parts) do
+    match?(["Elixir", _first, _second], module_parts)
+  end
+
+  defp known_protocol?(module_str) do
+    String.contains?(module_str, "Enumerable.") or
+      String.contains?(module_str, "String.Chars.") or
+      String.contains?(module_str, "Inspect.") or
+      String.contains?(module_str, "Collectable.")
+  end
+
+  defp generic_protocol_pattern?(module_str) do
+    # Generic MyProtocol.MyType pattern - require both parts to be capitalized
+    # and second part to not be a common test fixture name
+    String.match?(module_str, ~r/Elixir\.[A-Z][a-z]+\.[A-Z]/) and
+      not test_fixture_name?(module_str)
+  end
+
+  defp test_fixture_name?(module_str) do
+    String.contains?(module_str, ".Bar") or
+      String.contains?(module_str, ".Foo") or
+      String.contains?(module_str, ".Baz")
   end
 
   @doc """
   Detects test helper and factory modules.
   """
-  def is_test_helper?(module) do
+  def test_helper?(module) do
     module_name = Atom.to_string(module)
 
     String.contains?(module_name, "Factory") or
@@ -218,7 +223,7 @@ defmodule MixUnused.Heuristics do
   @doc """
   Detects if module name suggests it's internal/private implementation.
   """
-  def is_internal_module?(module) do
+  def internal_module?(module) do
     module_name = Atom.to_string(module)
 
     String.contains?(module_name, ".Internal.") or

@@ -69,39 +69,39 @@ defmodule MixUnused.DynamicCallsTest do
     end
   end
 
-  describe "is_apply_call?/3" do
+  describe "apply_call?/3" do
     test "recognizes Kernel.apply/3" do
-      assert DynamicCalls.is_apply_call?(Kernel, :apply, 3)
+      assert DynamicCalls.apply_call?(Kernel, :apply, 3)
     end
 
     test "recognizes Kernel.apply/2" do
-      assert DynamicCalls.is_apply_call?(Kernel, :apply, 2)
+      assert DynamicCalls.apply_call?(Kernel, :apply, 2)
     end
 
     test "recognizes :erlang.apply/3" do
-      assert DynamicCalls.is_apply_call?(:erlang, :apply, 3)
+      assert DynamicCalls.apply_call?(:erlang, :apply, 3)
     end
 
     test "recognizes :erlang.apply/2" do
-      assert DynamicCalls.is_apply_call?(:erlang, :apply, 2)
+      assert DynamicCalls.apply_call?(:erlang, :apply, 2)
     end
 
     test "recognizes unqualified apply/3" do
-      assert DynamicCalls.is_apply_call?(nil, :apply, 3)
+      assert DynamicCalls.apply_call?(nil, :apply, 3)
     end
 
     test "recognizes unqualified apply/2" do
-      assert DynamicCalls.is_apply_call?(nil, :apply, 2)
+      assert DynamicCalls.apply_call?(nil, :apply, 2)
     end
 
     test "rejects apply with wrong arity" do
-      refute DynamicCalls.is_apply_call?(Kernel, :apply, 1)
-      refute DynamicCalls.is_apply_call?(Kernel, :apply, 4)
+      refute DynamicCalls.apply_call?(Kernel, :apply, 1)
+      refute DynamicCalls.apply_call?(Kernel, :apply, 4)
     end
 
     test "rejects non-apply functions" do
-      refute DynamicCalls.is_apply_call?(String, :upcase, 1)
-      refute DynamicCalls.is_apply_call?(Enum, :map, 2)
+      refute DynamicCalls.apply_call?(String, :upcase, 1)
+      refute DynamicCalls.apply_call?(Enum, :map, 2)
     end
   end
 

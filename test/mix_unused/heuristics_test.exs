@@ -26,132 +26,132 @@ defmodule MixUnused.HeuristicsTest do
     end
   end
 
-  describe "is_otp_callback?/2" do
+  describe "otp_callback?/2" do
     test "recognizes GenServer callbacks" do
-      assert Heuristics.is_otp_callback?(:init, 1)
-      assert Heuristics.is_otp_callback?(:handle_call, 3)
-      assert Heuristics.is_otp_callback?(:handle_cast, 2)
-      assert Heuristics.is_otp_callback?(:handle_info, 2)
-      assert Heuristics.is_otp_callback?(:terminate, 2)
+      assert Heuristics.otp_callback?(:init, 1)
+      assert Heuristics.otp_callback?(:handle_call, 3)
+      assert Heuristics.otp_callback?(:handle_cast, 2)
+      assert Heuristics.otp_callback?(:handle_info, 2)
+      assert Heuristics.otp_callback?(:terminate, 2)
     end
 
     test "recognizes Supervisor callbacks" do
-      assert Heuristics.is_otp_callback?(:start_link, 1)
-      assert Heuristics.is_otp_callback?(:child_spec, 1)
+      assert Heuristics.otp_callback?(:start_link, 1)
+      assert Heuristics.otp_callback?(:child_spec, 1)
     end
 
     test "recognizes Application callbacks" do
-      assert Heuristics.is_otp_callback?(:start, 2)
-      assert Heuristics.is_otp_callback?(:stop, 1)
+      assert Heuristics.otp_callback?(:start, 2)
+      assert Heuristics.otp_callback?(:stop, 1)
     end
 
     test "rejects non-callbacks" do
-      refute Heuristics.is_otp_callback?(:foo, 1)
-      refute Heuristics.is_otp_callback?(:bar, 2)
+      refute Heuristics.otp_callback?(:foo, 1)
+      refute Heuristics.otp_callback?(:bar, 2)
     end
   end
 
-  describe "is_phoenix_callback?/3" do
+  describe "phoenix_callback?/3" do
     test "recognizes Phoenix Controller actions" do
-      assert Heuristics.is_phoenix_callback?(MyApp.UserController, :index, 2)
-      assert Heuristics.is_phoenix_callback?(MyApp.UserController, :show, 2)
-      assert Heuristics.is_phoenix_callback?(MyApp.UserController, :create, 2)
+      assert Heuristics.phoenix_callback?(MyApp.UserController, :index, 2)
+      assert Heuristics.phoenix_callback?(MyApp.UserController, :show, 2)
+      assert Heuristics.phoenix_callback?(MyApp.UserController, :create, 2)
     end
 
     test "recognizes Phoenix LiveView callbacks" do
-      assert Heuristics.is_phoenix_callback?(MyApp.UserLive, :mount, 3)
-      assert Heuristics.is_phoenix_callback?(MyApp.UserLive, :render, 1)
-      assert Heuristics.is_phoenix_callback?(MyApp.UserLive, :handle_event, 3)
+      assert Heuristics.phoenix_callback?(MyApp.UserLive, :mount, 3)
+      assert Heuristics.phoenix_callback?(MyApp.UserLive, :render, 1)
+      assert Heuristics.phoenix_callback?(MyApp.UserLive, :handle_event, 3)
     end
 
     test "recognizes Phoenix Channel callbacks" do
-      assert Heuristics.is_phoenix_callback?(MyApp.UserChannel, :join, 3)
-      assert Heuristics.is_phoenix_callback?(MyApp.UserChannel, :handle_in, 3)
+      assert Heuristics.phoenix_callback?(MyApp.UserChannel, :join, 3)
+      assert Heuristics.phoenix_callback?(MyApp.UserChannel, :handle_in, 3)
     end
 
     test "recognizes Phoenix View functions" do
-      assert Heuristics.is_phoenix_callback?(MyApp.UserView, :render, 2)
-      assert Heuristics.is_phoenix_callback?(MyApp.UserView, :any_function, 1)
+      assert Heuristics.phoenix_callback?(MyApp.UserView, :render, 2)
+      assert Heuristics.phoenix_callback?(MyApp.UserView, :any_function, 1)
     end
 
     test "rejects non-Phoenix modules" do
-      refute Heuristics.is_phoenix_callback?(MyApp.Service, :process, 2)
+      refute Heuristics.phoenix_callback?(MyApp.Service, :process, 2)
     end
   end
 
-  describe "is_plug_callback?/2" do
+  describe "plug_callback?/2" do
     test "recognizes Plug callbacks" do
-      assert Heuristics.is_plug_callback?(:init, 1)
-      assert Heuristics.is_plug_callback?(:call, 2)
+      assert Heuristics.plug_callback?(:init, 1)
+      assert Heuristics.plug_callback?(:call, 2)
     end
 
     test "rejects non-Plug functions" do
-      refute Heuristics.is_plug_callback?(:process, 2)
+      refute Heuristics.plug_callback?(:process, 2)
     end
   end
 
-  describe "is_ecto_callback?/2" do
+  describe "ecto_callback?/2" do
     test "recognizes Ecto.Schema callbacks" do
-      assert Heuristics.is_ecto_callback?(:changeset, 2)
-      assert Heuristics.is_ecto_callback?(:changeset, 3)
-      assert Heuristics.is_ecto_callback?(:__schema__, 1)
+      assert Heuristics.ecto_callback?(:changeset, 2)
+      assert Heuristics.ecto_callback?(:changeset, 3)
+      assert Heuristics.ecto_callback?(:__schema__, 1)
     end
 
     test "recognizes Ecto.Type callbacks" do
-      assert Heuristics.is_ecto_callback?(:type, 0)
-      assert Heuristics.is_ecto_callback?(:cast, 1)
-      assert Heuristics.is_ecto_callback?(:load, 1)
-      assert Heuristics.is_ecto_callback?(:dump, 1)
+      assert Heuristics.ecto_callback?(:type, 0)
+      assert Heuristics.ecto_callback?(:cast, 1)
+      assert Heuristics.ecto_callback?(:load, 1)
+      assert Heuristics.ecto_callback?(:dump, 1)
     end
 
     test "rejects non-Ecto functions" do
-      refute Heuristics.is_ecto_callback?(:process, 1)
+      refute Heuristics.ecto_callback?(:process, 1)
     end
   end
 
-  describe "is_protocol_implementation?/1" do
+  describe "protocol_implementation?/1" do
     test "recognizes known protocol implementations" do
       # Stdlib protocols are recognized by name
-      assert Heuristics.is_protocol_implementation?(Enumerable.List)
-      assert Heuristics.is_protocol_implementation?(Inspect.Atom)
+      assert Heuristics.protocol_implementation?(Enumerable.List)
+      assert Heuristics.protocol_implementation?(Inspect.Atom)
       # Note: MyProtocol.MyType will NOT be recognized unless it follows the pattern
       # with proper capitalization and isn't a test fixture name
     end
 
     test "rejects regular modules and test fixtures" do
-      refute Heuristics.is_protocol_implementation?(MyApp.Service)
-      refute Heuristics.is_protocol_implementation?(MyApp)
-      refute Heuristics.is_protocol_implementation?(Foo.Bar)  # Test fixture pattern
+      refute Heuristics.protocol_implementation?(MyApp.Service)
+      refute Heuristics.protocol_implementation?(MyApp)
+      refute Heuristics.protocol_implementation?(Foo.Bar)  # Test fixture pattern
       # String.Chars.Integer has 4 parts, not handled by this heuristic
-      refute Heuristics.is_protocol_implementation?(String.Chars.Integer)
+      refute Heuristics.protocol_implementation?(String.Chars.Integer)
     end
   end
 
-  describe "is_test_helper?/1" do
+  describe "test_helper?/1" do
     test "recognizes test helper modules" do
-      assert Heuristics.is_test_helper?(MyApp.Factory)
-      assert Heuristics.is_test_helper?(MyApp.Fixtures)
-      assert Heuristics.is_test_helper?(MyApp.TestHelper)
-      assert Heuristics.is_test_helper?(MyApp.DataCase)
-      assert Heuristics.is_test_helper?(MyApp.ConnCase)
+      assert Heuristics.test_helper?(MyApp.Factory)
+      assert Heuristics.test_helper?(MyApp.Fixtures)
+      assert Heuristics.test_helper?(MyApp.TestHelper)
+      assert Heuristics.test_helper?(MyApp.DataCase)
+      assert Heuristics.test_helper?(MyApp.ConnCase)
     end
 
     test "rejects regular modules" do
-      refute Heuristics.is_test_helper?(MyApp.Service)
+      refute Heuristics.test_helper?(MyApp.Service)
     end
   end
 
-  describe "is_internal_module?/1" do
+  describe "internal_module?/1" do
     test "recognizes internal module patterns" do
-      assert Heuristics.is_internal_module?(MyApp.Internal.Service)
-      assert Heuristics.is_internal_module?(MyApp.Private.Helper)
-      assert Heuristics.is_internal_module?(MyApp.Helpers.Util)
-      assert Heuristics.is_internal_module?(MyApp.Internal)
+      assert Heuristics.internal_module?(MyApp.Internal.Service)
+      assert Heuristics.internal_module?(MyApp.Private.Helper)
+      assert Heuristics.internal_module?(MyApp.Helpers.Util)
+      assert Heuristics.internal_module?(MyApp.Internal)
     end
 
     test "rejects public modules" do
-      refute Heuristics.is_internal_module?(MyApp.API)
-      refute Heuristics.is_internal_module?(MyApp.Service)
+      refute Heuristics.internal_module?(MyApp.API)
+      refute Heuristics.internal_module?(MyApp.Service)
     end
   end
 end
