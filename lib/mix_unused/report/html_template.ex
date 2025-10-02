@@ -31,6 +31,15 @@ defmodule MixUnused.Report.HtmlTemplate do
             <div class="header-stats">
               #{render_inline_stats(report_data.stats)}
             </div>
+            <select id="editorSelect" class="filter-select" style="width: auto; margin-right: 8px;" title="Choose editor for opening files">
+              <option value="windsurf">Windsurf</option>
+              <option value="vscode">VS Code</option>
+              <option value="cursor">Cursor</option>
+              <option value="idea">IntelliJ IDEA</option>
+              <option value="sublime">Sublime Text</option>
+              <option value="vim">Vim / Neovim</option>
+              <option value="file">System Default</option>
+            </select>
             <button class="export-button" id="exportJson" title="Export data as JSON">
               📊 Export JSON
             </button>
@@ -236,7 +245,7 @@ defmodule MixUnused.Report.HtmlTemplate do
     .tree-panel, .details-panel { background: white; padding: 15px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .tree-panel h2, .details-panel h2 { margin-bottom: 12px; color: #2c3e50; font-size: 1.1em; }
     #fileTree { max-height: 600px; overflow-y: auto; }
-    .tree-node { margin: 2px 0; }
+    .tree-node { margin: 1px 0; }
     .tree-node-header { padding: 6px 8px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 6px; transition: background 0.2s; }
     .tree-node-header:hover { background: #f5f7fa; }
     .tree-node-header.selected { background: #667eea; color: white; }
@@ -250,7 +259,8 @@ defmodule MixUnused.Report.HtmlTemplate do
     .top-file-item .rank { background: #667eea; color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.85em; }
     .top-file-item .file-name { flex: 1; font-family: 'Courier New', monospace; font-size: 0.85em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .top-file-item .issue-count { background: #e74c3c; color: white; padding: 3px 8px; border-radius: 12px; font-weight: 600; font-size: 0.8em; }
-    .issue-item { border-left: 3px solid #3498db; padding: 12px; margin: 8px 0; background: #f8f9fa; border-radius: 4px; }
+    .issue-item { border-left: 3px solid #3498db; padding: 12px; margin: 8px 0; background: #f8f9fa; border-radius: 4px; cursor: pointer; transition: all 0.2s; }
+    .issue-item:hover { background: #e8eaf6; transform: translateX(2px); }
     .issue-item.severity-error { border-left-color: #e74c3c; }
     .issue-item.severity-warning { border-left-color: #f39c12; }
     .issue-item.severity-hint { border-left-color: #3498db; }
@@ -268,7 +278,6 @@ defmodule MixUnused.Report.HtmlTemplate do
     .badge-analyzer.Unused { background: #e67e22; }
     .issue-message { color: #2c3e50; margin-top: 6px; font-size: 0.9em; font-weight: 500; }
     .issue-message .keyword { color: #e74c3c; font-weight: 600; }
-    .issue-location { font-family: 'Courier New', monospace; font-size: 0.8em; color: #7f8c8d; margin-top: 4px; }
     .placeholder { color: #95a5a6; text-align: center; padding: 30px; font-style: italic; }
     @media (max-width: 768px) { .content-layout { grid-template-columns: 1fr; } .stats-grid { grid-template-columns: repeat(2, 1fr); } }
     @media print { .controls, .tree-panel { display: none; } .content-layout { grid-template-columns: 1fr; } }
@@ -284,6 +293,7 @@ defmodule MixUnused.Report.HtmlTemplate do
       setupFilters();
       setupTopFileClicks();
       setupExport();
+      setupEditorSelector();
     });
 
     // Export functionality
@@ -300,6 +310,22 @@ defmodule MixUnused.Report.HtmlTemplate do
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
+      });
+    }
+
+    // Editor selector functionality
+    function setupEditorSelector() {
+      const editorSelect = document.getElementById('editorSelect');
+
+      // Load saved preference
+      const saved = localStorage.getItem('editorProtocol');
+      if (saved) {
+        editorSelect.value = saved;
+      }
+
+      // Save preference on change
+      editorSelect.addEventListener('change', function() {
+        localStorage.setItem('editorProtocol', this.value);
       });
     }
 
@@ -370,13 +396,53 @@ defmodule MixUnused.Report.HtmlTemplate do
     }
 
     function highlightKeywords(text) {
-      const keywords = ['unused', 'is not used', 'should be private', 'not used outside'];
+      const keywords = ['unused', 'is not used', 'should be private', 'not used outside', 'is called only recursively'];
       let result = text;
       keywords.forEach(keyword => {
         const regex = new RegExp(`(${keyword})`, 'gi');
         result = result.replace(regex, '<span class="keyword">$1</span>');
       });
       return result;
+    }
+
+    function extractAnalyzerMessage(fullMessage) {
+      // Remove the MFA (Module.Function/Arity) pattern from the beginning
+      // Pattern: ModuleName.function_name/arity followed by space
+      // Example: "Enthuziastic.Countries.get_country_alpha/1 should be private"
+      const mfaPattern = /^[A-Z][A-Za-z0-9._]*[?.!]?\\/\\d+\\s+/;
+      return fullMessage.replace(mfaPattern, '');
+    }
+
+    function createEditorLink(filePath, line) {
+      // Construct absolute path from project root
+      const absolutePath = reportData.project_root + '/' + filePath;
+
+      // Detect editor from user agent or allow configuration
+      // Default to file:// protocol for system default, but users can customize
+      const editorProtocol = getEditorProtocol();
+
+      if (editorProtocol === 'vscode' || editorProtocol === 'cursor' || editorProtocol === 'windsurf') {
+        return `${editorProtocol}://file${absolutePath}:${line}`;
+      } else if (editorProtocol === 'idea') {
+        return `idea://open?file=${absolutePath}&line=${line}`;
+      } else if (editorProtocol === 'sublime') {
+        return `subl://open?url=file://${absolutePath}&line=${line}`;
+      } else if (editorProtocol === 'vim') {
+        // Neovim protocol (requires neovim-remote or similar handler)
+        return `nvim://open?file=${absolutePath}&line=${line}`;
+      } else {
+        // Default: open file in system default application
+        return `file://${absolutePath}`;
+      }
+    }
+
+    function getEditorProtocol() {
+      // Check localStorage for user preference
+      const stored = localStorage.getItem('editorProtocol');
+      if (stored) return stored;
+
+      // Default to windsurf
+      return 'windsurf';
     }
 
     function showFileIssues(filePath) {
@@ -416,9 +482,11 @@ defmodule MixUnused.Report.HtmlTemplate do
       let html = `<h2>📝 ${escapeHtml(filePath)} (${filteredIssues.length} issues)</h2>`;
 
       filteredIssues.forEach(issue => {
-        const highlightedMessage = highlightKeywords(escapeHtml(issue.message));
+        const analyzerMessage = extractAnalyzerMessage(issue.message);
+        const highlightedMessage = highlightKeywords(escapeHtml(analyzerMessage));
+        const editorLink = createEditorLink(issue.file, issue.line);
         html += `
-          <div class="issue-item severity-${issue.severity}">
+          <div class="issue-item severity-${issue.severity}" onclick="window.location.href='${editorLink}'">
             <div class="issue-header">
               <div class="issue-signature">${escapeHtml(issue.signature)}</div>
               <div class="issue-meta">
@@ -427,7 +495,6 @@ defmodule MixUnused.Report.HtmlTemplate do
               </div>
             </div>
             <div class="issue-message">${highlightedMessage}</div>
-            <div class="issue-location">Line ${issue.line}</div>
           </div>
         `;
       });

@@ -22,7 +22,8 @@ defmodule MixUnused.Report.DataBuilder do
       timestamp: DateTime.utc_now() |> DateTime.to_iso8601(),
       total_count: length(diagnostics),
       issues: issues,
-      files: files
+      files: files,
+      project_root: File.cwd!()
     }
   end
 

@@ -39,7 +39,8 @@ defmodule MixUnused.Report.Generator do
       stats: stats,
       tree: tree,
       files: data.files,
-      issues: data.issues
+      issues: data.issues,
+      project_root: data.project_root
     }
   end
 
